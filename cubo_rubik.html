@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guia Cubo Mágico 3x3 - Método CFOP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3498db;
+            --primary-dark: #2980b9;
+            --secondary: #2c3e50;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --gray: #95a5a6;
+            --light-gray: #f8f9fa;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding-bottom: 80px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--accent), var(--success));
+        }
+
+        h1 {
+            color: var(--secondary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            color: var(--gray);
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .tab-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .tab-header {
+            display: flex;
+            justify-content: space-between;
+            background: var(--secondary);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .tab-header::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-button {
+            background: transparent;
+            border: none;
+            padding: 15px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            color: var(--light);
+            transition: var(--transition);
+            white-space: nowrap;
+            flex: 1;
+            min-width: 120px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-button.active {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--light);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.5s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            color: var(--secondary);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light-gray);
+            font-size: 1.8rem;
+        }
+
+        h3 {
+            color: var(--primary);
+            margin: 20px 0 10px;
+            font-size: 1.4rem;
+        }
+
+        h4 {
+            color: var(--secondary);
+            margin: 15px 0 8px;
+            font-size: 1.2rem;
+        }
+
+        p {
+            margin-bottom: 15px;
+            line-height: 1.7;
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        hr {
+            border: none;
+            height: 1px;
+            background: var(--light-gray);
+            margin: 20px 0;
+        }
+
+        .notation {
+            background-color: var(--light-gray);
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .step-image {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+
+        .step-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            border: 1px solid #e0e0e0;
+        }
+
+        .step-image img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .algorithm {
+            background: linear-gradient(135deg, var(--secondary) 0%, #34495e 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow-x: auto;
+            box-shadow: var(--shadow);
+            position: relative;
+            border-left: 5px solid var(--primary);
+        }
+
+        .algorithm h4 {
+            color: white;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .algorithm h4 i {
+            color: var(--primary);
+        }
+
+        .algorithm code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.1rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 15px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-top: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tip {
+            background-color: #e8f4fd;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .tip i {
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-top: 2px;
+        }
+
+        .warning {
+            background-color: #fde8e8;
+            border-left: 4px solid var(--danger);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .warning i {
+            color: var(--danger);
+            font-size: 1.2rem;
+            margin-top: 2px;
+        }
+
+        .success-message {
+            background-color: #e8f6ef;
+            border-left: 4px solid var(--success);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+            text-align: center;
+        }
+
+        .success-message h3 {
+            color: var(--success);
+            margin-bottom: 10px;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            border-bottom: 1px dotted transparent;
+        }
+
+        a:hover {
+            color: var(--primary-dark);
+            border-bottom: 1px dotted var(--primary);
+        }
+
+        .fixed-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(90deg, var(--secondary) 0%, var(--dark) 100%);
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            font-size: 1rem;
+            font-weight: 500;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .cube-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            margin: 0 5px;
+            position: relative;
+            transform: rotate(45deg);
+        }
+
+        .cube-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            transform: rotate(45deg);
+        }
+
+        .step-counter {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .image-grid img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: var(--transition);
+        }
+
+        .image-grid img:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .tab-header {
+                flex-direction: column;
+            }
+            
+            .tab-button {
+                min-width: 100%;
+                justify-content: flex-start;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .tab-content {
+                padding: 20px;
+            }
+            
+            .image-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animação para as abas */
+        .tab-button i {
+            transition: var(--transition);
+        }
+
+        .tab-button.active i {
+            transform: scale(1.2);
+        }
+
+        /* Efeito de brilho nos botões */
+        .tab-button {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: var(--transition);
+        }
+
+        .tab-button:hover::before {
+            left: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-cube"></i> Guia Cubo Mágico 3x3 <span class="cube-icon"></span></h1>
+            <p class="subtitle">Aprenda a resolver o cubo mágico com o método CFOP</p>
+        </header>
+
+        <div class="tab-container">
+            <div class="tab-header">
+                <button class="tab-button active" onclick="openTab(event, 'introducao')">
+                    <i class="fas fa-info-circle"></i> Introdução
+                </button>
+                <button class="tab-button" onclick="openTab(event, 'notacao')">
+                    <i class="fas fa-language"></i> Notação
+                </button>
+                <button class="tab-button" onclick="openTab(event, 'cross')">
+                    <i class="fas fa-plus"></i> Cruz
+                </button>
+                <button class="tab-button" onclick="openTab(event, 'f2l')">
+                    <i class="fas fa-layer-group"></i> F2L
+                </button>
+                <button class="tab-button" onclick="openTab(event, 'oll')">
+                    <i class="fas fa-sync"></i> OLL
+                </button>
+                <button class="tab-button" onclick="openTab(event, 'pll')">
+                    <i class="fas fa-check-double"></i> PLL
+                </button>
+            </div>
+
+            <div id="introducao" class="tab-content active">
+                <h2><i class="fas fa-cube"></i> O que é o Cubo Mágico 3x3</h2>
+                <p>O Cubo Mágico 3x3, também conhecido como Cubo de Rubik, é um quebra-cabeça tridimensional inventado pelo húngaro Ernő Rubik em 1974. O objetivo é girar as faces do cubo até que cada uma das seis faces tenha uma única cor.</p>
+                
+                <div class="step-image">
+                    <img src="img/cubo.png" alt="Cubo Mágico 3x3" style="max-width: 200px;">
+                </div>
+                
+                <hr>
+                <h2><i class="fas fa-magic"></i> O Método CFOP</h2>
+                <p>CFOP (Cross, F2L, OLL, PLL) é o método mais popular para resolver o cubo mágico rapidamente. É usado pela maioria dos speedcubers (pessoas que resolvem o cubo rapidamente) e permite resolver o cubo em menos de 20 movimentos na maioria dos casos.</p>
+                
+                <h3><span class="step-counter">1</span> As quatro etapas do CFOP:</h3>
+                <ol>
+                    <li><strong>Cruz (Cross):</strong> Formar uma cruz na face inferior.</li>
+                    <li><strong>F2L (First Two Layers):</strong> Resolver as duas primeiras camadas simultaneamente.</li>
+                    <li><strong>OLL (Orientation of the Last Layer):</strong> Orientar os cubos da última camada.</li>
+                    <li><strong>PLL (Permutation of the Last Layer):</strong> Permutar os cubos da última camada.</li>
+                </ol>
+                
+                <div class="tip">
+                    <i class="fas fa-lightbulb"></i>
+                    <div>
+                        <p><strong>Dica:</strong> Esse site contém algoritmos baseados em um site que ajuda muito a aprender: <a href="https://jperm.net/3x3/cfop" target="_blank">jperm.net</a>, um excelente recurso para aprender a resolver o cubo mágico com vários métodos de montagem.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="notacao" class="tab-content">
+                <h2><i class="fas fa-language"></i> Notação do Cubo Mágico</h2>
+                <p>Para seguir os algoritmos, é importante entender a notação padrão usada para descrever os movimentos do cubo.</p>
+                
+                <div class="notation">
+                    <h4><i class="fas fa-arrows-alt"></i> Movimentos Básicos:</h4>
+                    <ul>
+                        <li><strong>R (Right):</strong> Gira a face direita no sentido horário</li>
+                        <li><strong>L (Left):</strong> Gira a face esquerda no sentido horário</li>
+                        <li><strong>U (Up):</strong> Gira a face superior no sentido horário</li>
+                        <li><strong>D (Down):</strong> Gira a face inferior no sentido horário</li>
+                        <li><strong>F (Front):</strong> Gira a face frontal no sentido horário</li>
+                        <li><strong>B (Back):</strong> Gira a face traseira no sentido horário</li>
+                        <li><strong>M (Mid):</strong> Gira o meio de forma vertical no sentido horário</li>
+                        <li><strong>S (Standing):</strong> Gira o meio de forma vertical da segunda camada no sentido horário</li>
+                        <li><strong>E (Equator):</strong> Gira o meio de forma horizontal no sentido horário</li>
+                        <li><strong>w (wide):</strong> Adicionado em qualquer notação que não move os centros do cubo movendo a camada adjacente junto. Em alguns lugares, no lugar de possuir 'w' aparece com a letra minúscula.</li>
+                    </ul>
+                </div>
+                
+                <div class="notation">
+                    <h4><i class="fas fa-undo"></i> Movimentos com Apóstrofo (')</h4>
+                    <p>Um apóstrofo após a letra indica um movimento no sentido anti-horário:</p>
+                    <ul>
+                        <li><strong>R':</strong> Gira a face direita no sentido anti-horário</li>
+                        <li><strong>U':</strong> Gira a face superior no sentido anti-horário</li>
+                        <li>Repetido em todos os movimentos, deixando-os no sentido anti-horário.</li>
+                    </ul>
+                </div>
+                
+                <div class="notation">
+                    <h4><i class="fas fa-redo-alt"></i> Movimentos Duplos (2)</h4>
+                    <p>O número 2 após a letra indica um movimento de 180 graus:</p>
+                    <ul>
+                        <li><strong>R2:</strong> Gira a face direita 180 graus</li>
+                        <li><strong>U2:</strong> Gira a face superior 180 graus</li>
+                        <li>Continua girando qualquer notação a face superior 180 graus.</li>
+                    </ul>
+                </div>
+                
+                <div class="tip">
+                    <i class="fas fa-lightbulb"></i>
+                    <div>
+                        <p><strong>Dica:</strong> Pratique esses movimentos básicos antes de tentar resolver o cubo completo.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="cross" class="tab-content">
+                <h2><i class="fas fa-plus"></i> Etapa 1: Cruz (Cross)</h2>
+                <p>A primeira etapa é formar uma cruz na face inferior (normalmente branca) com as arestas correspondentes alinhadas com os centros das faces laterais.</p>
+                
+                <h3><span class="step-counter">1</span> Passos para a Cruz:</h3>
+                <ol>
+                    <li>Escolha uma cor para ser a base (geralmente branca).</li>
+                    <li>Encontre as quatro arestas que têm a cor da base.</li>
+                    <li>Posicione cada aresta na face inferior, alinhando-a com o centro da face lateral correspondente, assim formando a cruz.</li>
+                </ol>
+                
+                <div class="step-image">
+                    <img src="img/cubo_cruz.jfif" alt="Cruz no cubo mágico" style="max-width: 200px;">
+                </div>
+                
+                <h3><i class="fas fa-code"></i> Exemplo de Algoritmo para Cruz:</h3>
+                <div class="algorithm">
+                    <h4><i class="fas fa-cube"></i> Algoritmo Básico</h4>
+                    <p>Para posicionar os meios brancos pode ser feito de forma completamente intuitiva, mas alguns algoritmos básicos são:</p>
+                    <code>(F2) ou (R' F R)</code>
+                </div>
+                
+                <div class="tip">
+                    <i class="fas fa-lightbulb"></i>
+                    <div>
+                        <p><strong>Dica:</strong> Tente resolver a cruz em 8 movimentos ou menos. Pratique até conseguir fazer isso sem pensar muito.</p>
+                    </div>
+                </div>
+                
+                <div class="warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <p><strong>Atenção:</strong> Certifique-se de que cada aresta da cruz está alinhada corretamente com os centros das faces laterais antes de prosseguir para a próxima etapa.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="f2l" class="tab-content">
+                <h2><i class="fas fa-layer-group"></i> Etapa 2: F2L (First Two Layers)</h2>
+                <p>Nesta etapa, resolvemos as duas primeiras camadas simultaneamente, inserindo pares de canto e aresta nas posições corretas.</p>
+                
+                <h3><span class="step-counter">2</span> Conceito Básico do F2L:</h3>
+                <p>Em vez de resolver primeiro os cantos e depois as arestas (método do iniciante), no F2L resolvemos pares de canto e aresta juntos.</p>
+                
+                <div class="step-image">
+                    <img src="img/cubo_f2l.png" alt="F2L no cubo mágico" style="max-width: 200px;">
+                </div>
+                
+                <h3><i class="fas fa-cubes"></i> Casos Básicos de F2L:</h3>
+                <p>Existem 41 casos possíveis de F2L, porém também pode ser realizado intuitivamente sem usar algoritmos, mas você pode começar com os mais comuns:</p>
+                
+                <h4><i class="fas fa-cube"></i> Caso 1: Par na camada superior, cores opostas</h4>
+                <div class="algorithm">
+                    <h4><i class="fas fa-code"></i> Algoritmo</h4>
+                    <code>R U' R'</code>
+                </div>
+                <div class="step-image">
+                    <img src="img/cubo_f2l2.png" alt="F2L Caso 1" style="max-width: 200px;">
+                </div>
+                
+                <h4><i class="fas fa-cube"></i> Caso 2: Par na camada superior, cores adjacentes</h4>
+                <div class="algorithm">
+                    <h4><i class="fas fa-code"></i> Algoritmo</h4>
+                    <code>R U R</code>
+                </div>
+                <div class="step-image">
+                    <img src="img/cubo_f2l1.png" alt="F2L Caso 2" style="max-width: 200px;">
+                </div>
+                
+                <h4><i class="fas fa-cube"></i> Caso 3: Canto no local correto, aresta na camada superior</h4>
+                <div class="algorithm">
+                    <h4><i class="fas fa-code"></i> Algoritmo</h4>
+                    <code>R U R' U R U' R'</code>
+                </div>
+                <div class="step-image">
+                    <img src="img/cubo_f2l3.png" alt="F2L Caso 3" style="max-width: 200px;">
+                </div>
+                
+                <div class="tip">
+                    <i class="fas fa-lightbulb"></i>
+                    <div>
+                        <p><strong>Dica:</strong> Pratique cada caso individualmente até entender a lógica por trás dos movimentos. Com o tempo, você será capaz de resolver o F2L intuitivamente.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="oll" class="tab-content">
+                <h2><i class="fas fa-sync"></i> Etapa 3: OLL (Orientation of the Last Layer)</h2>
+                <p>Nesta etapa, orientamos todos os cubos da última camada (amarela, se você usou branco como base) para que fiquem com a face amarela para cima.</p>
+                
+                <div class="step-image">
+                    <img src="img/cubo_oll.png" alt="OLL no cubo mágico" style="max-width: 200px;">
+                </div>
+                
+                <h3><span class="step-counter">3</span> OLL em Dois Passos:</h3>
+                <p>Para iniciantes, é recomendado aprender o OLL em dois passos:</p>
+                <ol>
+                    <li>OLL da Cruz (7 casos)</li>
+                    <li>OLL Completo (57 casos, mas pode ser aprendido gradualmente)</li>
+                </ol>
+                
+                <h3><i class="fas fa-code"></i> Algoritmos de OLL Básicos:</h3>
+                
+                <h4><i class="fas fa-sun"></i> OLL Sune:</h4>
+                <div class="algorithm">
+                    <h4><i class="fas fa-code"></i> Algoritmo</h4>
+                    <code>R U R' U R U2 R'</code>
+                </div>
+                <div class="step-image">
+                    <img src="img/cubo_suni.png" alt="OLL Sune" style="max-width: 200px;">
+                </div>
+                
+                <h4><i class="fas fa-shapes"></i> OLL 24:</h4>
+                <div class="algorithm">
+                    <h4><i class="fas fa-code"></i> Algoritmo</h4>
+                    <code>r U R' U' r' F R F'</code>
+                </div>
+                <div class="step-image">
+                    <img src="img/cubo_oll1.png" alt="OLL 24" style="max-width: 200px;">
+                </div>
+
+                <h4><i class="fas fa-t"></i> OLL T:</h4>
+                <div class="algorithm">
+                    <h4><i class="fas fa-code"></i> Algoritmo</h4>
+                    <code>F R U R' U' F'</code>
+                </div>
+                <div class="step-image">
+                    <img src="img/cubo_oll2.png" alt="OLL T" style="max-width: 200px;">
+                </div>
+                
+                <div class="tip">
+                    <i class="fas fa-lightbulb"></i>
+                    <div>
+                        <p><strong>Dica:</strong> Comece aprendendo os 7 casos de OLL para formar a cruz amarela. Depois, gradualmente aprenda os casos restantes.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pll" class="tab-content">
+                <h2><i class="fas fa-check-double"></i> Etapa 4: PLL (Permutation of the Last Layer)</h2>
+                <p>Na etapa final, permutamos os cubos da última camada para que fiquem nas posições corretas, completando o cubo.</p>
+                
+                <div class="step-image">
+                    <img src="img/cubo_pll.png" alt="PLL no cubo mágico" style="max-width: 200px;">
+                </div>
+                
+                <h3><span class="step-counter">4</span> PLL Básico:</h3>
+                <p>Existem 21 casos de PLL, mas você pode começar com os mais comuns:</p>
+                
+                <h4><i class="fas fa-exchange-alt"></i> PLL H</h4>
+                <div class="algorithm">
+                    <h4><i class="fas fa-code"></i> Algoritmo</h4>
+                    <code>M2 U M2 U2 M2 U M2</code>
+                </div>
+                <img src="img/pll_h.png" alt="PLL no cubo mágico" style="max-width: 200px;">
+                
+                <h4><i class="fas fa-arrows-alt-h"></i> PLL Na:</h4>
+                <div class="algorithm">
+                    <h4><i class="fas fa-code"></i> Algoritmo</h4>
+                    <code>RU R' URU R' F' RU R' U' R' F R2 U' R' U2 R U' R'</code>
+                </div>
+                <img src="img/pll_na.png" alt="PLL no cubo mágico" style="max-width: 200px;">
+                
+                <h4><i class="fas fa-arrows-alt-v"></i> PLL T:</h4>
+                <div class="algorithm">
+                    <h4><i class="fas fa-code"></i> Algoritmo</h4>
+                    <code>RU R' U' R' F R2 U' R' U' RU R' F'</code>
+                </div>
+                <img src="img/pll_t.png" alt="PLL no cubo mágico" style="max-width: 200px;">
+                
+                <h4><i class="fas fa-arrows-alt"></i> PLL Aa:</h4>
+                <div class="algorithm">
+                    <h4><i class="fas fa-code"></i> Algoritmo</h4>
+                    <code>x L2 D2 L' U' L D2 L' U L'</code>
+                </div>
+
+                <h4><i class="fas fa-arrows-alt"></i> PLL E:</h4>
+                <div class="algorithm">
+                    <h4><i class="fas fa-code"></i> Algoritmo</h4>
+                    <code>x' L' UL D' L' U' LD L' U' L D' L' ULD</code>
+                </div>
+                
+                <div class="tip">
+                    <i class="fas fa-lightbulb"></i>
+                    <div>
+                        <p><strong>Dica:</strong> Pratique o reconhecimento dos casos de PLL. Com o tempo, você será capaz de identificar rapidamente qual algoritmo usar.</p>
+                    </div>
+                </div>
+                
+                <div class="warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <p><strong>Atenção:</strong> Após o PLL, o cubo deve estar completamente resolvido. Se não estiver, verifique se você executou todas as etapas corretamente.</p>
+                    </div>
+                </div>
+                
+                <div class="success-message">
+                    <h3><i class="fas fa-trophy"></i> Parabéns!</h3>
+                    <p>Se você chegou até aqui, conseguiu resolver o cubo mágico 3x3 usando o método CFOP!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rodapé fixo -->
+    <footer class="fixed-footer">
+        <i class="fas fa-cube"></i> Guia Cubo Mágico 3x3 - Utilizando CFOP &copy; 2025
+    </footer>
+
+    <script>
+        function openTab(evt, tabName) {
+            let i, tabcontent, tabbuttons;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+                tabcontent[i].classList.remove("active");
+            }
+            tabbuttons = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tabbuttons.length; i++) {
+                tabbuttons[i].classList.remove("active");
+            }
+            document.getElementById(tabName).style.display = "block";
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+        
+        // Adiciona efeito de digitação ao título
+        document.addEventListener('DOMContentLoaded', function() {
+            const title = document.querySelector('h1');
+            const text = title.innerHTML;
+            title.innerHTML = '';
+            
+            let i = 0;
+            function typeWriter() {
+                if (i < text.length) {
+                    title.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, 50);
+                }
+            }
+            
+            // Inicia a animação após um breve delay
+            setTimeout(typeWriter, 500);
+        });
+    </script>
+</body>
+</html>
